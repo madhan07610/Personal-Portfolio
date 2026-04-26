@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resume</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:700,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    /* ── NAVBAR FIX ── */
+    header{position:fixed!important;top:0!important;left:0!important;width:100%!important;background:#23223a!important;z-index:9999!important;box-shadow:0 2px 16px rgba(0,0,0,0.3)!important;}
+    main{padding-top:88px!important;}
+    .logo{visibility:hidden;}
+    .logo.ready{visibility:visible;}
+
+    .resume-wrapper{min-height:70vh;display:flex;align-items:center;justify-content:center;padding:60px 20px;}
+    .resume-card{background:#1e1d36;border:1px solid rgba(162,89,255,0.2);border-radius:20px;padding:48px 44px;width:100%;max-width:520px;box-shadow:0 16px 60px rgba(162,89,255,0.15);text-align:center;opacity:0;animation:fadeUp .6s ease forwards;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .resume-icon{font-size:4rem;margin-bottom:16px;}
+    .resume-card h2{font-size:1.8rem;color:#a259ff;margin-bottom:8px;}
+    .resume-card p{color:#888;font-size:0.95rem;margin-bottom:36px;}
+    .btn-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+    .btn-view{display:inline-flex;align-items:center;gap:10px;background:#1e1d36;color:#a259ff;border:2px solid #a259ff;padding:13px 30px;border-radius:12px;font-size:1rem;font-weight:700;text-decoration:none;transition:background 0.2s,color 0.2s,transform 0.2s;}
+    .btn-view:hover{background:#a259ff;color:#fff;transform:scale(1.04);}
+    .btn-download{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(90deg,#a259ff,#2979ff);color:#fff;padding:13px 30px;border-radius:12px;font-size:1rem;font-weight:700;text-decoration:none;transition:opacity 0.2s,transform 0.2s;box-shadow:0 4px 20px rgba(162,89,255,0.25);}
+    .btn-download:hover{opacity:0.9;transform:scale(1.04);}
+    .no-resume{color:#ff6b6b;background:rgba(255,80,80,0.08);border:1px solid rgba(255,80,80,0.2);border-radius:10px;padding:14px 20px;font-size:0.9rem;}
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="navbar">
+      <div class="logo" id="siteLogo">.</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="education.html">Education</a></li>
+        <li><a href="experience.html">Experience</a></li>
+        <li><a href="projects.html">Projects</a></li>
+        <li><a href="certificates.html">Certificates</a></li>
+        <li><a href="resume.html" class="active">Resume</a></li>
+        <li><a href="contact.html" class="contact-btn">Contact</a></li>
+        <li><a href="login.html" class="admin-btn">Admin</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <div class="resume-wrapper">
+      <div class="resume-card">
+        <div class="resume-icon">📄</div>
+        <h2>My Resume</h2>
+        <p>View online or download my latest resume.</p>
+        <div id="resumeAction">
+          <span style="color:#888"><i class="fas fa-spinner fa-spin"></i> Loading...</span>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    const API = "http://localhost:8080";
+    function getLinks(raw){
+      if(raw.includes('drive.google.com/file/d/')){
+        const m = raw.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if(m) return{view:`https://drive.google.com/file/d/${m[1]}/preview`,download:`https://drive.google.com/uc?export=download&id=${m[1]}`};
+      }
+      return{view:raw,download:raw};
+    }
+    async function init(){
+      try{
+        const pr = await fetch(`${API}/api/profile`);
+        const profile = await pr.json();
+        const name = (profile && profile.name) ? profile.name.toUpperCase() : 'GUDI BHANU TEJA';
+        document.getElementById('siteLogo').textContent = name;
+        document.title = 'Resume - ' + (profile.name || 'Portfolio');
+        document.getElementById('siteLogo').classList.add('ready');
+
+        const raw = profile && (profile.resume || profile.resumeUrl);
+        if(!raw){
+          document.getElementById('resumeAction').innerHTML = `<div class="no-resume">⚠️ No resume added yet.<br>Paste a resume link in the Admin panel.</div>`;
+          return;
+        }
+        const{view,download} = getLinks(raw);
+        document.getElementById('resumeAction').innerHTML = `
+          <div class="btn-row">
+            <a class="btn-view" href="${view}" target="_blank"><i class="fas fa-eye"></i> View Resume</a>
+            <a class="btn-download" href="${download}" target="_blank" download><i class="fas fa-download"></i> Download</a>
+          </div>`;
+      }catch(err){
+        document.getElementById('siteLogo').textContent = 'GUDI BHANU TEJA';
+        document.getElementById('siteLogo').classList.add('ready');
+        document.getElementById('resumeAction').innerHTML = `<div class="no-resume">⚠️ Server not reachable.<br>Make sure the backend is running.</div>`;
+      }
+    }
+    init();
+  </script>
+</body>
+</html>
